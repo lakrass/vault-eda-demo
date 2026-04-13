@@ -1,0 +1,12 @@
+FROM quay.io/ansible/eda-decision-environment:latest
+
+# Python Dependencies (Vault, Events, JSON handling)
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Ansible Collections
+COPY requirements.yml /tmp/requirements.yml
+RUN ansible-galaxy collection install -r /tmp/requirements.yml
+
+# Default working directory
+WORKDIR /runner

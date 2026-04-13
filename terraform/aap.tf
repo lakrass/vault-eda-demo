@@ -57,6 +57,13 @@ resource "aap_eda_project" "vault_eda" {
   url      = var.eda_project_scm_url
 }
 
+resource "aap_eda_decision_environment" "vault" {
+  name            = "eda-azure-vault"
+  organization_id = aap_organization.vault_eda.id
+
+  image_url = vars.eda_decision_environment
+}
+
 output "eda_project_id" {
   value = aap_eda_project.vault_eda.id
 }
