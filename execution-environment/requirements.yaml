@@ -1,0 +1,7 @@
+collections:
+  # Util
+  - name: ansible.posix
+  - name: community.general
+
+  # Vault
+  - name: community.hashi_vault

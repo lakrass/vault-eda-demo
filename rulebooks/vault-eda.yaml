@@ -1,0 +1,18 @@
+---
+- name: Handle Vault events and fetch Vault secret
+  hosts: all
+  match_multiple_rules: true
+  sources:
+    - ansible.eda.azure_service_bus:
+        queue_name: vault-events
+        conn_str: "{{ servicebus_connection_string }}"
+
+  rules:
+    - name: Vault event triggers Vault secret deployment
+      condition: true
+      actions:
+        - print_event:
+            pretty: true
+        - run_job_template:
+            name: Vault EDA Demo Job Template
+            organization: Vault EDA Demo

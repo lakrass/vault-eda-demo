@@ -1,0 +1,3 @@
+collections:
+  # Event Driven Ansible
+  - name: ansible.eda
