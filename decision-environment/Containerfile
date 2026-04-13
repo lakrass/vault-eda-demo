@@ -1,12 +1,30 @@
-FROM quay.io/ansible/ansible-rule:latest
+FROM python:3.11-slim
 
-# Python Dependencies (Vault, Events, JSON handling)
+ENV DEBIAN_FRONTEND=noninteractive
+
+# System requirements for ansible-rulebook
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      openjdk-17-jre-headless \
+      git \
+      gcc \
+      libffi-dev \
+      libssl-dev \
+      openssh-client \
+      ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install ansible core + rulebook
+RUN pip install --no-cache-dir \
+      ansible-core>=2.15 \
+      ansible-rulebook>=1.1
+
+# Python deps for rulebooks
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Ansible Collections
+# EDA collection
 COPY requirements.yml /tmp/requirements.yml
 RUN ansible-galaxy collection install -r /tmp/requirements.yml
 
-# Default working directory
 WORKDIR /runner
