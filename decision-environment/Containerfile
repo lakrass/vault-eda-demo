@@ -24,7 +24,7 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # EDA collection
-COPY requirements.yml /tmp/requirements.yml
-RUN ansible-galaxy collection install -r /tmp/requirements.yml
+COPY requirements.yaml /tmp/requirements.yaml
+RUN ansible-galaxy collection install -r /tmp/requirements.yaml
 
 WORKDIR /runner
