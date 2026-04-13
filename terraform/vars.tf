@@ -33,7 +33,7 @@ variable "aap_host" {
 variable "eda_project_scm_url" {
   description = "Git URL for EDA rulebooks repo"
   type        = string
-  default     = ""
+  default     = "https://github.com/lakrass/vault-eda-demo"
 }
 
 ############################
