@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ansible-automation-platform-25/de-minimal-rhel9:latest
+FROM quay.io/ansible/ansible-rule:latest
 
 # Python Dependencies (Vault, Events, JSON handling)
 COPY requirements.txt /tmp/requirements.txt
