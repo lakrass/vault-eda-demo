@@ -20,6 +20,8 @@
           packages = with pkgs; [
             vault
             terraform
+            ansible
+            ansible-lint
             dotnet-sdk_8
             dotnet-runtime_8
             azure-functions-core-tools
