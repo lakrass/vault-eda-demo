@@ -57,7 +57,8 @@ resource "aap_eda_decision_environment" "vault" {
   name            = "eda-azure-vault"
   organization_id = aap_organization.vault_eda.id
 
-  image_url = var.eda_decision_environment
+  image_url   = var.eda_decision_environment
+  pull_policy = "always"
 }
 
 ############################

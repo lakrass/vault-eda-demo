@@ -13,12 +13,6 @@ resource "azurerm_user_assigned_identity" "umi" {
   resource_group_name = azurerm_resource_group.rg.name
 }
 
-resource "azurerm_role_assignment" "sb_send" {
-  scope                = azurerm_servicebus_namespace.sb.id
-  role_definition_name = "Azure Service Bus Data Sender"
-  principal_id         = azurerm_user_assigned_identity.umi.principal_id
-}
-
 resource "azurerm_log_analytics_workspace" "law" {
   name                = "vault-eda-demo"
   location            = azurerm_resource_group.rg.location
@@ -38,7 +32,9 @@ resource "azurerm_application_insights" "ai" {
   name                = "vault-eda-demo"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  application_type    = "web"
+
+  application_type = "web"
+  workspace_id     = azurerm_log_analytics_workspace.law.id
 }
 
 ############################
@@ -118,7 +114,7 @@ resource "azurerm_container_app" "app" {
       }
 
       liveness_probe {
-        transport        = "http"
+        transport        = "HTTP"
         path             = "/livez"
         port             = 8080
         initial_delay    = 5
@@ -126,7 +122,7 @@ resource "azurerm_container_app" "app" {
       }
 
       readiness_probe {
-        transport        = "http"
+        transport        = "HTTP"
         path             = "/readyz"
         port             = 8080
         initial_delay    = 5
@@ -237,8 +233,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-noble"
-    sku       = "24_04-lts-gen2"
+    offer     = "ubuntu-24_04-lts"
+    sku       = "server"
     version   = "latest"
   }
 }
@@ -254,7 +250,7 @@ output "ansible_vm_public_ip" {
 output "servicebus_connection" {
   value       = azurerm_servicebus_namespace_authorization_rule.sb_send.primary_connection_string
   description = "Primary connection string for Service Bus"
-  sensitive   = true  # Mark as sensitive since it contains credentials
+  sensitive   = true # Mark as sensitive since it contains credentials
 }
 
 output "servicebus_queue" {

@@ -1,3 +1,10 @@
+resource "local_file" "ansible_private_key" {
+  content         = tls_private_key.ansible.private_key_openssh
+  filename        = "${path.module}/../ansible_id_ed25519.key"
+  file_permission = "0600"
+}
+
+
 resource "local_file" "env_file" {
   filename = "${path.module}/../.env"
   content  = <<-EOF

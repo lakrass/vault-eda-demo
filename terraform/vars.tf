@@ -15,7 +15,7 @@ variable "location" {
 variable "azure_container_app_image" {
   description = "Container image for Azure Container App (WS client + SB sender)"
   type        = string
-  default     = "ghcr.io/lakrass/vault-eda-demo-relay:latest"
+  default     = "ghcr.io/lakrass/vault-eda-demo-relay:main"
 }
 
 ############################
@@ -49,7 +49,7 @@ variable "eda_project_scm_url" {
 variable "eda_decision_environment" {
   description = "Git URL for EDA rulebooks repo"
   type        = string
-  default     = "ghcr.io/lakrass/vault-eda-demo-de:latest"
+  default     = "ghcr.io/lakrass/vault-eda-demo-de:main"
 }
 
 ############################

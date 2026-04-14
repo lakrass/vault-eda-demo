@@ -644,3 +644,4 @@ pip-selfcheck.json
 # End of https://www.toptal.com/developers/gitignore/api/venv,csharp,python,ansible,terraform,azurefunctions,visualstudiocode,direnv
 
 .ansible
+*.key
