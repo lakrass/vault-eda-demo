@@ -1,5 +1,5 @@
 {
-  inputs = { nixpkgs.url = "github:nixos/nixpkgs/25.11"; };
+  inputs = { nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"; };
 
   outputs = { self, nixpkgs }:
     let
@@ -17,16 +17,19 @@
     in {
       devShells = forEachSupportedSystem ({ pkgs }: {
         default = pkgs.mkShell {
-          packages = with pkgs; [
-            vault
-            terraform
-            ansible
-            ansible-lint
-            dotnet-sdk_8
-            dotnet-runtime_8
-            azure-functions-core-tools
-            azure-cli
-          ];
+          venvDir = ".venv";
+          packages = with pkgs;
+            [
+              vault
+              terraform
+              python312
+              ansible
+              ansible-lint
+              dotnet-sdk_8
+              dotnet-runtime_8
+              azure-functions-core-tools
+              azure-cli
+            ] ++ (with python312Packages; [ pip venvShellHook ]);
 
           shellHook = ''
             export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
