@@ -20,6 +20,7 @@
           venvDir = ".venv";
           packages = with pkgs;
             [
+              podman
               vault
               terraform
               python312
