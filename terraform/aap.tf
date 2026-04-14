@@ -41,10 +41,6 @@ resource "aap_host" "ansible_vm" {
   })
 }
 
-output "aap_inventory_id" {
-  value = aap_inventory.ansible_targets.id
-}
-
 ############################
 # EDA Project
 ############################
@@ -61,7 +57,15 @@ resource "aap_eda_decision_environment" "vault" {
   name            = "eda-azure-vault"
   organization_id = aap_organization.vault_eda.id
 
-  image_url = vars.eda_decision_environment
+  image_url = var.eda_decision_environment
+}
+
+############################
+# Outputs
+############################
+
+output "aap_inventory_id" {
+  value = aap_inventory.ansible_targets.id
 }
 
 output "eda_project_id" {

@@ -17,21 +17,14 @@ terraform {
       version = "~> 2.2"
     }
 
+    vault = {
+      source  = "hashicorp/vault"
+      version = "~> 5.8"
+    }
+
     random = {
       source  = "hashicorp/random"
       version = "~> 3.8"
     }
   }
-}
-
-provider "hcp" {
-  project_id = var.vault_hcp_project_id
-}
-
-provider "azurerm" {
-  features {}
-}
-
-provider "aap" {
-  endpoint = var.aap_host
 }

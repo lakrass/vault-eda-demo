@@ -1,5 +1,5 @@
 ############################
-# Global / Azure
+# Global
 ############################
 
 variable "location" {
@@ -9,7 +9,17 @@ variable "location" {
 }
 
 ############################
-# HCP / Vault
+# Azure
+############################
+
+variable "azure_container_app_image" {
+  description = "Container image for Azure Container App (WS client + SB sender)"
+  type        = string
+  default     = "ghcr.io/lakrass/vault-eda-demo-relay:latest"
+}
+
+############################
+# HCP Vault
 ############################
 
 variable "vault_hcp_project_id" {
@@ -18,7 +28,7 @@ variable "vault_hcp_project_id" {
 }
 
 ############################
-# AAP / EDA
+# AAP
 ############################
 
 variable "aap_host" {

@@ -7,21 +7,31 @@ resource "azurerm_resource_group" "rg" {
   location = var.location
 }
 
-resource "azurerm_storage_account" "sa" {
-  name                     = "stvaultfn${random_string.suffix.result}"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = azurerm_resource_group.rg.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  min_tls_version          = "TLS1_2"
+resource "azurerm_user_assigned_identity" "umi" {
+  name                = "vault-eda-demo"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
-resource "azurerm_service_plan" "plan" {
+resource "azurerm_role_assignment" "sb_send" {
+  scope                = azurerm_servicebus_namespace.sb.id
+  role_definition_name = "Azure Service Bus Data Sender"
+  principal_id         = azurerm_user_assigned_identity.umi.principal_id
+}
+
+resource "azurerm_log_analytics_workspace" "law" {
   name                = "vault-eda-demo"
-  resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  os_type             = "Linux"
-  sku_name            = "P1v3" # Always-on (for WS-Connection)
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_container_app_environment" "env" {
+  name                       = "vault-eda-demo"
+  location                   = azurerm_resource_group.rg.location
+  resource_group_name        = azurerm_resource_group.rg.name
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 }
 
 resource "azurerm_application_insights" "ai" {
@@ -59,39 +69,70 @@ resource "azurerm_servicebus_namespace_authorization_rule" "sb_send" {
 }
 
 ############################
-# Azure Function App (WS client + SB sender)
+# Azure Container App (WS client + SB sender)
 ############################
 
-resource "azurerm_linux_function_app" "fn" {
-  name                       = "vault-eda-demo"
-  resource_group_name        = azurerm_resource_group.rg.name
-  location                   = azurerm_resource_group.rg.location
-  service_plan_id            = azurerm_service_plan.plan.id
-  storage_account_name       = azurerm_storage_account.sa.name
-  storage_account_access_key = azurerm_storage_account.sa.primary_access_key
+resource "azurerm_container_app" "app" {
+  name                         = "vault-eda-demo"
+  container_app_environment_id = azurerm_container_app_environment.env.id
+  resource_group_name          = azurerm_resource_group.rg.name
+  revision_mode                = "Single"
 
-  app_settings = {
-    # Vault
-    VAULT_ADDR = hcp_vault_cluster.vault.vault_public_endpoint_url
-
-    # Service Bus
-    SERVICEBUS_CONNECTION = azurerm_servicebus_namespace_authorization_rule.sb_send.primary_connection_string
-    SERVICEBUS_QUEUE      = azurerm_servicebus_queue.queue.name
-
-    # AAP / EDA Event Stream target
-    AAP_EVENT_STREAM_URL   = ""
-    AAP_EVENT_STREAM_TOKEN = ""
-
-    # Runtime
-    FUNCTIONS_WORKER_RUNTIME = "python"
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.umi.id]
   }
 
-  site_config {
-    application_stack {
-      python_version = "3.11"
-    }
+  template {
+    min_replicas = 2
 
-    application_insights_key = azurerm_application_insights.ai.instrumentation_key
+    container {
+      name   = "vault-eda-relay"
+      image  = var.azure_container_app_image
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "VAULT_ADDR"
+        value = hcp_vault_cluster.vault.vault_public_endpoint_url
+      }
+
+      env {
+        name  = "VAULT_AZURE_ROLE"
+        value = "azure-managed-identity"
+      }
+
+      env {
+        name  = "SERVICEBUS_CONNECTION"
+        value = azurerm_servicebus_namespace_authorization_rule.sb_send.primary_connection_string
+      }
+
+      env {
+        name  = "SERVICEBUS_QUEUE"
+        value = azurerm_servicebus_queue.queue.name
+      }
+
+      env {
+        name  = "VAULT_NAMESPACE"
+        value = "admin"
+      }
+
+      liveness_probe {
+        transport        = "http"
+        path             = "/livez"
+        port             = 8080
+        initial_delay    = 5
+        interval_seconds = 10
+      }
+
+      readiness_probe {
+        transport        = "http"
+        path             = "/readyz"
+        port             = 8080
+        initial_delay    = 5
+        interval_seconds = 10
+      }
+    }
   }
 }
 
@@ -202,6 +243,22 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 }
 
+############################
+# Outputs
+############################
+
 output "ansible_vm_public_ip" {
   value = azurerm_public_ip.vm.ip_address
 }
+
+output "servicebus_connection" {
+  value       = azurerm_servicebus_namespace_authorization_rule.sb_send.primary_connection_string
+  description = "Primary connection string for Service Bus"
+  sensitive   = true  # Mark as sensitive since it contains credentials
+}
+
+output "servicebus_queue" {
+  value       = azurerm_servicebus_queue.queue.name
+  description = "Name of the Service Bus queue"
+}
+
