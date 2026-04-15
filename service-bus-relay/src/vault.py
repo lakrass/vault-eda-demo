@@ -27,8 +27,10 @@ AUTH_STATUS_CODES = (401, 403)
 def build_url(vault_addr: str, vault_event_type: str) -> str:
     """Build the WebSocket URL for Vault event subscription."""
     u = urlparse(vault_addr)
-    u.scheme = "wss" if u.scheme == "https" else "ws"
-    u.path = f"/v1/sys/events/subscribe/{vault_event_type}"
+    u = u._replace(
+        scheme="wss" if u.scheme == "https" else "ws",
+        path=f"/v1/sys/events/subscribe/{vault_event_type}",
+    )
 
     q = dict(parse_qsl(u.query, keep_blank_values=True))
     q["json"] = "true"
@@ -38,7 +40,12 @@ def build_url(vault_addr: str, vault_event_type: str) -> str:
 
 
 def login_via_azure_auth(
-    vault_addr: str, vault_namespace: str, vault_azure_role: str, azure_jwt: str
+    vault_addr: str,
+    vault_namespace: str,
+    vault_azure_role: str,
+    azure_subscription_id: str,
+    azure_resource_group_name: str,
+    azure_jwt: str,
 ) -> hvac.Client:
     """Authenticate with Vault using Azure JWT."""
     client = hvac.Client(
@@ -46,8 +53,16 @@ def login_via_azure_auth(
         namespace=vault_namespace,
     )
 
+    logging.info("Logging into Vault with Azure auth (role: %s, subscription: %s, resource_group: %s)",
+        vault_azure_role,
+        azure_subscription_id,
+        azure_resource_group_name,
+    )
+
     client.auth.azure.login(
         role=vault_azure_role,
+        subscription_id=azure_subscription_id,
+        resource_group_name=azure_resource_group_name,
         jwt=azure_jwt,
     )
 
@@ -58,11 +73,22 @@ def login_via_azure_auth(
 
 
 async def login_via_azure_auth_async(
-    vault_addr: str, vault_namespace: str, vault_azure_role: str, azure_jwt: str
+    vault_addr: str,
+    vault_namespace: str,
+    vault_azure_role: str,
+    azure_subscription_id: str,
+    azure_resource_group_name: str,
+    azure_jwt: str,
 ) -> hvac.Client:
     """Async wrapper for Vault Azure authentication."""
     return await asyncio.to_thread(
-        login_via_azure_auth, vault_addr, vault_namespace, vault_azure_role, azure_jwt
+        login_via_azure_auth,
+        vault_addr,
+        vault_namespace,
+        vault_azure_role,
+        azure_subscription_id,
+        azure_resource_group_name,
+        azure_jwt,
     )
 
 
@@ -91,7 +117,8 @@ async def vault_event_loop(
     vault_namespace: str,
     vault_event_type: str,
     vault_azure_role: str,
-    azure_client_id: str | None,
+    azure_subscription_id: str,
+    azure_resource_group_name: str,
     stop_event: asyncio.Event,
     sink: ServiceBusSink,
     health: HealthState,
@@ -104,9 +131,14 @@ async def vault_event_loop(
         headers["X-Vault-Namespace"] = vault_namespace
 
     logging.info("Initializing connection to Vault")
-    azure_jwt = await get_azure_token_async(client_id=azure_client_id)
+    azure_jwt = await get_azure_token_async()
     vault_client = await login_via_azure_auth_async(
-        vault_addr, vault_namespace, vault_azure_role, azure_jwt
+        vault_addr,
+        vault_namespace,
+        vault_azure_role,
+        azure_subscription_id,
+        azure_resource_group_name,
+        azure_jwt,
     )
 
     backoff = BACKOFF_INITIAL
@@ -135,11 +167,14 @@ async def vault_event_loop(
                 try:
                     if is_token_expired(azure_jwt):
                         logging.info("Token expired, refreshing...")
-                        azure_jwt = await get_azure_token_async(
-                            client_id=azure_client_id
-                        )
+                        azure_jwt = await get_azure_token_async()
                     vault_client = await login_via_azure_auth_async(
-                        vault_addr, vault_namespace, vault_azure_role, azure_jwt
+                        vault_addr,
+                        vault_namespace,
+                        vault_azure_role,
+                        azure_subscription_id,
+                        azure_resource_group_name,
+                        azure_jwt,
                     )
                     logging.info("Vault re-authentication successful")
                 except RuntimeError as auth_err:

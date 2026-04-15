@@ -11,7 +11,6 @@ import json
 import base64
 import time
 import logging
-from typing import Optional
 
 from azure.identity import DefaultAzureCredential
 from azure.core.exceptions import AzureError
@@ -28,17 +27,11 @@ def _decode_jwt_payload(token: str) -> dict:
     return json.loads(base64.urlsafe_b64decode(payload_b64).decode("utf-8"))
 
 
-def get_azure_token(
-    resource: str = DEFAULT_RESOURCE, client_id: Optional[str] = None
-) -> str:
+def get_azure_token(resource: str = DEFAULT_RESOURCE) -> str:
     """Acquire an Azure token using DefaultAzureCredential (supports managed identity, az login,
     etc.)."""
     try:
-        credential = (
-            DefaultAzureCredential(managed_identity_client_id=client_id)
-            if client_id
-            else DefaultAzureCredential()
-        )
+        credential = DefaultAzureCredential()
         token = credential.get_token(resource)
         logging.debug(
             "Acquired Azure token (expires in %ds)",
@@ -50,11 +43,9 @@ def get_azure_token(
         raise RuntimeError("Failed to acquire Azure token") from exc
 
 
-async def get_azure_token_async(
-    resource: str = DEFAULT_RESOURCE, client_id: Optional[str] = None
-) -> str:
+async def get_azure_token_async(resource: str = DEFAULT_RESOURCE) -> str:
     """Async wrapper for Azure token acquisition."""
-    return await asyncio.to_thread(get_azure_token, resource, client_id)
+    return await asyncio.to_thread(get_azure_token, resource)
 
 
 def is_token_expired(token: str, leeway_seconds: int = LEEWAY_SECONDS_DEFAULT) -> bool:

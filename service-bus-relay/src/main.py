@@ -31,16 +31,17 @@ def load_environment() -> dict:
         "vault_azure_role": env.str("VAULT_AZURE_ROLE"),
         "servicebus_connection": env.str("SERVICEBUS_CONNECTION"),
         "servicebus_queue": env.str("SERVICEBUS_QUEUE"),
+        "azure_subscription_id": env.str("AZURE_SUBSCRIPTION_ID"),
+        "azure_resource_group_name": env.str("AZURE_RESOURCE_GROUP_NAME"),
         "vault_namespace": env.str("VAULT_NAMESPACE", None),
-        "vault_event_type": env.str("VAULT_EVENT_TYPE", "*"),
-        "azure_client_id": env.str("AZURE_CLIENT_ID", None),
+        "vault_event_type": env.str("VAULT_EVENT_TYPE", "kv-v2/data-*"),
         "healthz_host": env.str("HEALTHZ_HOST", HEALTHZ_HOST_DEFAULT),
         "healthz_port": env.int("HEALTHZ_PORT", HEALTHZ_PORT_DEFAULT),
         "servicebus_stale_seconds": env.float(
             "SERVICEBUS_STALE_SECONDS", SERVICEBUS_STALE_SECONDS_DEFAULT
         ),
         "log_level": env.log_level("LOG_LEVEL", logging.INFO),
-        "log_format": env.str("LOG_FORMAT", "%(asctime)s %(levelname)s %(message)s"),
+        "log_format": env.str("LOG_FORMAT", "%(asctime)s [%(levelname)s] %(message)s"),
     }
 
 
@@ -74,6 +75,10 @@ async def main():
         format=env_vars["log_format"],
     )
 
+    logging.debug(
+        "Loaded environment variables: %s", {k: v for k, v in env_vars.items()}
+    )
+
     logging.info(
         "Starting service-bus-relay with Vault addr: %s", env_vars["vault_addr"]
     )
@@ -98,26 +103,38 @@ async def main():
         env_vars["servicebus_queue"],
         health,
     ) as sink:
+
+        def _log_worker_failure(task: asyncio.Task):
+            if task.cancelled():
+                return
+            exc = task.exception()
+            if exc:
+                logging.error(
+                    "Vault worker failed",
+                    exc_info=(type(exc), exc, exc.__traceback__),
+                )
+
         worker = asyncio.create_task(
             vault_event_loop(
                 env_vars["vault_addr"],
                 env_vars["vault_namespace"],
                 env_vars["vault_event_type"],
                 env_vars["vault_azure_role"],
-                env_vars["azure_client_id"],
+                env_vars["azure_subscription_id"],
+                env_vars["azure_resource_group_name"],
                 stop_event,
                 sink,
                 health,
             )
         )
 
+        worker.add_done_callback(_log_worker_failure)
+
         await stop_event.wait()  # Wait for shutdown signal
         worker.cancel()
         health_task.cancel()
 
-        # Gather results, ignoring CancelledError for clean shutdown        worker.cancel()
-        health_task.cancel()
-
+        # Gather results, ignoring CancelledError for clean shutdown
         results = await asyncio.gather(worker, health_task, return_exceptions=True)
 
         errors = [
@@ -127,8 +144,6 @@ async def main():
         ]
 
         if errors:
-            for e in errors:
-                logging.exception("Background task failed", exc_info=e)
             raise ExceptionGroup("One or more background tasks failed", errors)
 
     logging.info("Shutdown complete")
