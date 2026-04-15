@@ -13,5 +13,7 @@ resource "local_file" "env_file" {
     VAULT_AZURE_ROLE=${vault_azure_auth_backend_role.vault_eda_relay.role}
     SERVICEBUS_CONNECTION=${azurerm_servicebus_namespace_authorization_rule.sb_send.primary_connection_string}
     SERVICEBUS_QUEUE=${azurerm_servicebus_queue.queue.name}
+    AZURE_SUBSCRIPTION_ID=${data.azurerm_client_config.current.subscription_id}
+    AZURE_RESOURCE_GROUP_NAME=${azurerm_resource_group.rg.name}
   EOF
 }

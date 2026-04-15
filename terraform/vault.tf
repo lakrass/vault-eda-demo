@@ -17,7 +17,7 @@ resource "vault_policy" "relay" {
   policy = <<-EOH
     # Allow subscription to event stream (WebSocket)
     path "sys/events/subscribe/*" {
-      capabilities = ["subscribe"]
+      capabilities = ["read"]
     }
 
     # Allow receiving events for secrets under "secret/*"
@@ -64,16 +64,21 @@ resource "vault_azure_auth_backend_config" "azure_config" {
   backend   = vault_auth_backend.azure.path
   tenant_id = data.azurerm_client_config.current.tenant_id
   resource  = "https://management.azure.com"
+
 }
 
 resource "vault_azure_auth_backend_role" "vault_eda_relay" {
-  backend                     = vault_auth_backend.azure.path
-  role                        = "vault-eda-relay"
-  bound_service_principal_ids = []
-  bound_resource_groups       = ["vault-eda-demo"]
-  token_ttl                   = 3600
-  token_max_ttl               = 86400
-  token_policies              = [vault_policy.relay.name]
+  backend = vault_auth_backend.azure.path
+  role    = "vault-eda-relay"
+
+  bound_service_principal_ids = [
+    data.azurerm_client_config.current.object_id,
+    azurerm_user_assigned_identity.umi.principal_id
+  ]
+
+  token_ttl      = 3600
+  token_max_ttl  = 86400
+  token_policies = [vault_policy.relay.name]
 }
 
 ############################
