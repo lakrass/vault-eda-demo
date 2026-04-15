@@ -23,17 +23,18 @@
               podman
               vault
               terraform
-              python312
+              python313
               ansible
               ansible-lint
               dotnet-sdk_8
               dotnet-runtime_8
               azure-functions-core-tools
               azure-cli
-            ] ++ (with python312Packages; [ pip venvShellHook ]);
+            ] ++ (with python313Packages; [ pip venvShellHook ]);
 
           shellHook = ''
             export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+            unset PYTHONPATH
           '';
         };
       });
