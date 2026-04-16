@@ -52,7 +52,9 @@ resource "azurerm_servicebus_queue" "queue" {
   name         = "vault-events"
   namespace_id = azurerm_servicebus_namespace.sb.id
 
-  max_delivery_count = 10
+  requires_duplicate_detection         = true
+  lock_duration                        = "PT10S"
+  dead_lettering_on_message_expiration = true
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "sb_send" {
