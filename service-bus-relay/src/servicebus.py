@@ -16,7 +16,7 @@ from .health import HealthState
 CONTENT_TYPE_JSON = "application/json"
 
 
-def safe_extract_id(payload: str) -> str:
+def _safe_extract_id(payload: str) -> str:
     """Safely extract an ID from JSON payload or generate a UUID."""
     try:
         obj = json.loads(payload)
@@ -69,7 +69,7 @@ class ServiceBusSink:
         """Create a Service Bus message from payload."""
         return ServiceBusMessage(
             body=payload,
-            message_id=safe_extract_id(payload),
+            message_id=_safe_extract_id(payload),
             content_type=CONTENT_TYPE_JSON,
         )
 
