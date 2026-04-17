@@ -7,6 +7,15 @@ resource "vault_mount" "kv" {
   type = "kv-v2"
 }
 
+resource "vault_kv_secret_v2" "demo_secret" {
+  mount = vault_mount.kv.path
+  name  = "demo-secret"
+
+  data_json = jsonencode({
+    demo_secret = "This is a secret retrieved from Vault using EDA!"
+  })
+}
+
 ############################
 # Policies
 ############################
@@ -49,6 +58,17 @@ resource "vault_policy" "demo_user" {
   EOH
 }
 
+resource "vault_policy" "aap" {
+  name = "aap"
+
+  policy = <<-EOH
+    # Allow secret read access
+    path "secret/data/*" {
+      capabilities = ["read"]
+    }
+  EOH
+}
+
 ############################
 # Azure Auth Method
 ############################
@@ -86,8 +106,7 @@ resource "vault_azure_auth_backend_role" "vault_eda_relay" {
 ############################
 
 resource "vault_auth_backend" "userpass" {
-  type        = "userpass"
-  description = "Userpass authentication for demo users"
+  type = "userpass"
 }
 
 resource "vault_generic_endpoint" "demo_user" {
@@ -98,6 +117,24 @@ resource "vault_generic_endpoint" "demo_user" {
     password = "demo"
     policies = [vault_policy.demo_user.name]
   })
+}
+
+############################
+# Approle Auth Method
+############################
+resource "vault_auth_backend" "approle" {
+  type = "approle"
+}
+
+resource "vault_approle_auth_backend_role" "aap" {
+  backend        = vault_auth_backend.approle.path
+  role_name      = "aap"
+  token_policies = [vault_policy.aap.name]
+}
+
+resource "vault_approle_auth_backend_role_secret_id" "aap" {
+  backend   = vault_auth_backend.approle.path
+  role_name = vault_approle_auth_backend_role.aap.role_name
 }
 
 ############################
