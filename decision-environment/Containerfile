@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bookworm
+FROM python:3.12-slim-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -14,10 +14,8 @@ RUN apt-get update && \
       ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# Install ansible core + rulebook
-RUN pip install --no-cache-dir \
-      ansible-core>=2.15 \
-      ansible-rulebook>=1.1
+# Upgrade pip
+RUN python -m pip install --upgrade pip
 
 # Python deps for rulebooks
 COPY requirements.txt /tmp/requirements.txt

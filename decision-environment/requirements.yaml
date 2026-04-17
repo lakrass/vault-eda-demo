@@ -1,6 +1,3 @@
 collections:
-  # Vault Modules
-  - name: community.hashi_vault
-
   # Event Driven Ansible
   - name: ansible.eda
