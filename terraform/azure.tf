@@ -96,8 +96,13 @@ resource "azurerm_container_app" "app" {
       }
 
       env {
+        name  = "VAULT_NAMESPACE"
+        value = hcp_vault_cluster.vault.namespace
+      }
+
+      env {
         name  = "VAULT_AZURE_ROLE"
-        value = "azure-managed-identity"
+        value = vault_azure_auth_backend_role.vault_eda_relay.role
       }
 
       env {
@@ -111,8 +116,18 @@ resource "azurerm_container_app" "app" {
       }
 
       env {
-        name  = "VAULT_NAMESPACE"
-        value = "admin"
+        name  = "AZURE_CLIENT_ID"
+        value = azurerm_user_assigned_identity.umi.client_id
+      }
+
+      env {
+        name  = "AZURE_SUBSCRIPTION_ID"
+        value = data.azurerm_client_config.current.subscription_id
+      }
+
+      env {
+        name  = "AZURE_RESOURCE_GROUP_NAME"
+        value = azurerm_resource_group.rg.name
       }
 
       liveness_probe {
