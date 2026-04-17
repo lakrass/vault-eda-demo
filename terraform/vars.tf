@@ -62,9 +62,9 @@ variable "eda_playbook_path" {
 # Helper
 ############################
 
-resource "random_string" "suffix" {
-  length  = 5
-  upper   = false
+resource "random_string" "eda_password" {
+  length  = 30
+  upper   = true
   numeric = true
-  special = false
+  special = true
 }

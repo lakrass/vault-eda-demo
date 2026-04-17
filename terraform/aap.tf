@@ -183,9 +183,51 @@ resource "aap_eda_credential" "azure_service_bus" {
   })
 }
 
-#resource "rulebook activation" "name" {
-#
-#}
+resource "aap_user" "eda" {
+  username = "eda"
+  password = random_string.eda_password.result
+}
+
+data "aap_eda_credential_type" "rh_aap" {
+  name = "Red Hat Ansible Automation Platform"
+}
+
+resource "aap_eda_credential" "rh_aap" {
+  name               = "Vault EDA Demo RHAAP Credential"
+  organization_id    = aap_organization.vault_eda.id
+  credential_type_id = data.aap_eda_credential_type.rh_aap.id
+
+  inputs = jsonencode({
+    username = aap_user.eda.username
+    password = aap_user.eda.password
+    host     = var.aap_host
+  })
+}
+
+resource "aap_generic_endpoint" "rulebook_activation" {
+  api_endpoint = "eda"
+  api_path     = "activations"
+
+  data_json = jsonencode({
+    organization_id = aap_organization.vault_eda.id
+    name            = "Vault EDA Demo Rulebook Activation"
+
+    project_id  = aap_eda_project.vault_eda.id
+    rulebook_id = 1 # Todo: this is wildy guessed, need to find a better way to reference the correct rulebook
+
+    decision_environment_id = aap_eda_decision_environment.azure.id
+    enabled                 = true
+
+    eda_credentials = [
+      aap_eda_credential.rh_aap.id,
+      aap_eda_credential.azure_service_bus.id
+    ]
+
+    extra_var = "websocket_ssl_verify: false"
+
+    restart_policy = "always"
+  })
+}
 
 ############################
 # Outputs
