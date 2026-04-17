@@ -1,0 +1,9 @@
+# Util
+jmespath>=1.1.0
+PyYAML>=6.0.3
+
+# Ansible
+ansible-core>=2.15
+
+# Vault
+hvac>=2.4.0

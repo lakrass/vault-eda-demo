@@ -1,0 +1,36 @@
+FROM python:3.12-slim-bookworm
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# System requirements for ansible-rulebook
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      git \
+      gcc \
+      libffi-dev \
+      libssl-dev \
+      openssh-client \
+      sshpass \
+      ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip
+RUN python -m pip install --upgrade pip
+
+# Python deps for rulebooks
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Collections
+COPY requirements.yaml /tmp/requirements.yaml
+RUN ansible-galaxy collection install -r /tmp/requirements.yaml
+
+# Disable host key checking by default (AAP-friendly)
+ENV ANSIBLE_HOST_KEY_CHECKING=False \
+    PYTHONUNBUFFERED=1
+
+# Create non-root user
+RUN useradd -m ansible 
+User ansible
+
+WORKDIR /home/ansible
