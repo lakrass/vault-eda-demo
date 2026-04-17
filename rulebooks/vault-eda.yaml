@@ -2,21 +2,18 @@
 - name: Handle Vault events and fetch Vault secret
   hosts: all
   sources:
-    - name: vault-events
-      webhook:
-        host: 0.0.0.0
-        port: 5000
+    - azure_servicebus:
+        queue_name: vault-events
+        connection_string: "{{ servicebus_connection_string }}"
 
   rules:
     - name: Vault event triggers Vault secret deployment
-      condition: >
-        event.payload is defined and
-        event.payload.secret_path is defined and
-        event.payload.target_host is defined
+      condition:
+        all:
+          - event.data.event_type == "kv-v2/data-write"
+          - event.data.event.metadata.modified == "true"
+          - event.data.event.metadata.path == "secret/data/demo-secret"
       action:
         run_job_template:
-          name: deploy-secret
-          organization: Default
-          job_args:
-            vault_secret_path: "{{ event.payload.secret_path }}"
-            target_host: "{{ event.payload.target_host }}"
+          name: Demo Job Template
+          organization: Vault EDA Demo
