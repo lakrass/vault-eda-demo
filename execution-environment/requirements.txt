@@ -4,6 +4,7 @@ PyYAML>=6.0.3
 
 # Ansible
 ansible-core>=2.15
+ansible-runner>=2.4
 
 # Vault
 hvac>=2.4.0
