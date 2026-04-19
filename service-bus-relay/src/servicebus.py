@@ -84,7 +84,7 @@ class ServiceBusSink:
             await asyncio.to_thread(self.sender.send_messages, msg)
             self.health.sb_last_send_ok_at = self.health.now()
             self.health.sb_last_error = ""
-            logging.debug(
+            logging.info(
                 "Sent message to Service Bus queue: %s (ID: %s)",
                 self.queue,
                 msg.message_id,
