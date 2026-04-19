@@ -2,7 +2,7 @@
 - name: Handle Vault events and fetch Vault secret
   hosts: all
   sources:
-    - azure_servicebus:
+    - ansible.eda.azure_service_bus:
         queue_name: vault-events
         connection_string: "{{ servicebus_connection_string }}"
 
