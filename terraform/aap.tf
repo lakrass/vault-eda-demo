@@ -180,7 +180,7 @@ resource "aap_eda_credential" "azure_service_bus" {
 
   credential_type_id = aap_eda_credential_type.azure_service_bus.id
   inputs = jsonencode({
-    servicebus_connection_string = azurerm_servicebus_namespace_authorization_rule.sb_send.primary_connection_string
+    servicebus_connection_string = azurerm_servicebus_namespace_authorization_rule.sb_listen.primary_connection_string
   })
 }
 

@@ -66,6 +66,15 @@ resource "azurerm_servicebus_namespace_authorization_rule" "sb_send" {
   manage = false
 }
 
+resource "azurerm_servicebus_namespace_authorization_rule" "sb_listen" {
+  name         = "listen-only"
+  namespace_id = azurerm_servicebus_namespace.sb.id
+
+  listen = true
+  send   = false
+  manage = false
+}
+
 ############################
 # Azure Container App (WS client + SB sender)
 ############################
