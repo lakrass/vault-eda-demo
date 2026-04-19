@@ -36,8 +36,8 @@ RUN useradd -m ansible
 
 # Create and own runner directory 
 RUN mkdir -p /runner/.ansible/tmp && \
-    chown ansible:0 /runner && \
-    chmod 0770 /runner
+    chown -R ansible:0 /runner && \
+    chmod -R 0770 /runner
 
 # Set user and working directory
 USER ansible
