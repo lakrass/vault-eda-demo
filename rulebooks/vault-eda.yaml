@@ -4,7 +4,7 @@
   sources:
     - ansible.eda.azure_service_bus:
         queue_name: vault-events
-        connection_string: "{{ servicebus_connection_string }}"
+        conn_str: "{{ servicebus_connection_string }}"
 
   rules:
     - name: Vault event triggers Vault secret deployment
