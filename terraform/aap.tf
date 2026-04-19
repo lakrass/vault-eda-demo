@@ -76,6 +76,7 @@ resource "aap_project" "vault_eda" {
 resource "aap_execution_environment" "ee" {
   name  = "Vault EDA Demo Execution Environment"
   image = var.aap_execution_environment
+  pull  = "always"
 }
 
 resource "aap_credential_type" "demo" {
