@@ -7,6 +7,12 @@
         conn_str: "{{ servicebus_connection_string }}"
 
   rules:
+    - name: Log
+      condition: true
+      actions:
+        - print_event:
+            pretty: true
+
     - name: Vault event triggers Vault secret deployment
       condition:
         all:
