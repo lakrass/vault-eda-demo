@@ -31,6 +31,11 @@ ENV ANSIBLE_HOST_KEY_CHECKING=False \
 
 # Create non-root user
 RUN useradd -m ansible 
-User ansible
 
-WORKDIR /home/ansible
+# Create and own runner directory 
+RUN mkdir -p /runner && \
+    chown ansible:ansible /runner
+
+# Set user and working directory
+USER ansible
+WORKDIR /runner
