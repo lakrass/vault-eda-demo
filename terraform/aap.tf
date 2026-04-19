@@ -139,7 +139,7 @@ resource "aap_job_template_credential" "jt_cred" {
 
 resource "aap_eda_project" "vault_eda" {
   name            = "Vault EDA Demo"
-  organization_id = aap_organization.vault_eda.id
+  organization_id = aap_organization.vault_eda.eda_id
 
   scm_type = "git"
   url      = "https://github.com/lakrass/vault-eda-demo"
@@ -147,7 +147,7 @@ resource "aap_eda_project" "vault_eda" {
 
 resource "aap_eda_decision_environment" "azure" {
   name            = "Vault EDA Demo Decision Environment"
-  organization_id = aap_organization.vault_eda.id
+  organization_id = aap_organization.vault_eda.eda_id
 
   image_url   = var.eda_decision_environment
   pull_policy = "always"
@@ -176,7 +176,7 @@ resource "aap_eda_credential_type" "azure_service_bus" {
 
 resource "aap_eda_credential" "azure_service_bus" {
   name            = "Vault EDA Demo Azure Service Bus Credential"
-  organization_id = aap_organization.vault_eda.id
+  organization_id = aap_organization.vault_eda.eda_id
 
   credential_type_id = aap_eda_credential_type.azure_service_bus.id
   inputs = jsonencode({
@@ -195,7 +195,7 @@ data "aap_eda_credential_type" "rh_aap" {
 
 resource "aap_eda_credential" "rh_aap" {
   name               = "Vault EDA Demo RHAAP Credential"
-  organization_id    = aap_organization.vault_eda.id
+  organization_id    = aap_organization.vault_eda.eda_id
   credential_type_id = data.aap_eda_credential_type.rh_aap.id
 
   inputs = jsonencode({
@@ -210,7 +210,7 @@ resource "aap_generic_endpoint" "rulebook_activation" {
   api_path     = "activations"
 
   data_json = jsonencode({
-    organization_id = aap_organization.vault_eda.id
+    organization_id = aap_organization.vault_eda.eda_id
     name            = "Vault EDA Demo Rulebook Activation"
 
     project_id  = aap_eda_project.vault_eda.id
