@@ -201,8 +201,25 @@ resource "aap_eda_credential" "rh_aap" {
   inputs = jsonencode({
     username = aap_user.eda.username
     password = aap_user.eda.password
-    host     = var.aap_host
+    host     = "${var.aap_host}/api/controller/"
   })
+}
+
+data "http" "eda_rulebooks" {
+  url    = "${var.aap_host}/api/eda/v1/rulebooks/?project_id=${aap_eda_project.vault_eda.id}"
+  method = "GET"
+
+  request_headers = {
+    Authorization = "Basic ${base64encode("${var.aap_username}:${var.aap_password}")}"
+  }
+}
+
+locals {
+  rulebook_id = one([
+    for rb in jsondecode(data.http.eda_rulebooks.response_body).results :
+    rb.id
+    if rb.name == var.eda_rulebook_name
+  ])
 }
 
 resource "aap_generic_endpoint" "rulebook_activation" {
@@ -214,7 +231,7 @@ resource "aap_generic_endpoint" "rulebook_activation" {
     name            = "Vault EDA Demo Rulebook Activation"
 
     project_id  = aap_eda_project.vault_eda.id
-    rulebook_id = 1 # Todo: this is wildy guessed, need to find a better way to reference the correct rulebook
+    rulebook_id = local.rulebook_id
 
     decision_environment_id = aap_eda_decision_environment.azure.id
     enabled                 = true
@@ -223,8 +240,6 @@ resource "aap_generic_endpoint" "rulebook_activation" {
       aap_eda_credential.rh_aap.id,
       aap_eda_credential.azure_service_bus.id
     ]
-
-    extra_var = "websocket_ssl_verify: false"
 
     restart_policy = "always"
   })

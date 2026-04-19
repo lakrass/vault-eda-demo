@@ -19,3 +19,5 @@ provider "vault" {
   token     = hcp_vault_cluster_admin_token.token.token
   namespace = hcp_vault_cluster.vault.namespace
 }
+
+provider "http" {}

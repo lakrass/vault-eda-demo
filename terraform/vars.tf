@@ -42,6 +42,16 @@ variable "aap_execution_environment" {
   default     = "ghcr.io/lakrass/vault-eda-demo-ee:main"
 }
 
+variable "aap_username" {
+  type      = string
+  sensitive = true
+}
+
+variable "aap_password" {
+  type      = string
+  sensitive = true
+}
+
 ############################
 # EDA
 ############################
@@ -56,6 +66,12 @@ variable "eda_playbook_path" {
   description = "Path to the EDA playbook"
   type        = string
   default     = "playbooks/deploy-secret.yaml"
+}
+
+variable "eda_rulebook_name" {
+  description = "Name of the EDA rulebook"
+  type        = string
+  default     = "vault-eda.yaml"
 }
 
 ############################
