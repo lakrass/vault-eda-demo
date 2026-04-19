@@ -16,9 +16,9 @@
     - name: Vault event triggers Vault secret deployment
       condition:
         all:
-          - event.data.event_type == "kv-v2/data-write"
-          - event.data.event.metadata.modified == "true"
-          - event.data.event.metadata.path == "secret/data/demo-secret"
+          - event.body.data.event_type == "kv-v2/data-write"
+          - event.body.data.event.metadata.modified == "true"
+          - event.body.data.event.metadata.path == "secret/data/demo-secret"
       action:
         run_job_template:
           name: Demo Job Template
