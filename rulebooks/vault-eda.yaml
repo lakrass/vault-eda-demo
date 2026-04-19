@@ -1,6 +1,7 @@
 ---
 - name: Handle Vault events and fetch Vault secret
   hosts: all
+  match_multiple_rules: true
   sources:
     - ansible.eda.azure_service_bus:
         queue_name: vault-events
