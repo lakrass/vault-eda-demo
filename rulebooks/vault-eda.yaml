@@ -8,12 +8,6 @@
         conn_str: "{{ servicebus_connection_string }}"
 
   rules:
-    - name: Log
-      condition: true
-      actions:
-        - print_event:
-            pretty: true
-
     - name: Vault event triggers Vault secret deployment
       condition:
         all:
@@ -24,3 +18,9 @@
         run_job_template:
           name: Vault EDA Demo Job Template
           organization: Vault EDA Demo
+
+    - name: Log
+      condition: true
+      actions:
+        - print_event:
+            pretty: true
