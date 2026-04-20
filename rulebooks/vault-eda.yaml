@@ -27,11 +27,11 @@
           msg: "Event path is correct: {{ event.body.data.event.metadata.path }}"
 
     - name: Vault event triggers Vault secret deployment
-      condition:
-        all:
-          - event.body.data.event_type == "kv-v2/data-write"
-          - event.body.data.event.metadata.modified == "true"
-          - event.body.data.event.metadata.path == "secret/data/demo-secret"
+      condition: true
+      #  all:
+      #    - event.body.data.event_type == "kv-v2/data-write"
+      #    - event.body.data.event.metadata.modified == "true"
+      #    - event.body.data.event.metadata.path == "secret/data/demo-secret"
       actions:
         - print_event:
             pretty: true
