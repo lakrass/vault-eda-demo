@@ -32,13 +32,9 @@
           - event.body.data.event_type == "kv-v2/data-write"
           - event.body.data.event.metadata.modified == "true"
           - event.body.data.event.metadata.path == "secret/data/demo-secret"
-      action:
-        run_job_template:
-          name: Vault EDA Demo Job Template
-          organization: Vault EDA Demo
-
-    - name: Log
-      condition: true
       actions:
         - print_event:
             pretty: true
+        - run_job_template:
+            name: Vault EDA Demo Job Template
+            organization: Vault EDA Demo
