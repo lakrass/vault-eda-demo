@@ -8,6 +8,24 @@
         conn_str: "{{ servicebus_connection_string }}"
 
   rules:
+    - name: DEBUG – correct event type?
+      condition: event.body.data.event_type == "kv-v2/data-write"
+      action:
+        debug:
+          msg: "Event type is correct: {{ event.body.data.event_type }}"
+
+    - name: DEBUG – metadata.modified == true?
+      condition: event.body.data.event.metadata.modified == "true"
+      action:
+        debug:
+          msg: "Metadata modified is true: {{ event.body.data.event.metadata.modified }}"
+
+    - name: DEBUG – correct path?
+      condition: event.body.data.event.metadata.path == "secret/data/demo-secret"
+      action:
+        debug:
+          msg: "Event path is correct: {{ event.body.data.event.metadata.path }}"
+
     - name: Vault event triggers Vault secret deployment
       condition:
         all:
