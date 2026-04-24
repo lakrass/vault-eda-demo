@@ -1,0 +1,17 @@
+use flake
+
+# HCP environment variables
+export HCP_CLIENT_ID=""
+export HCP_CLIENT_SECRET=""
+export TF_VAR_vault_hcp_project_id=""
+
+# AAP environment variables
+export AAP_USERNAME=""
+export AAP_PASSWORD=""
+export TF_VAR_aap_host=""
+export TF_VAR_aap_username="${AAP_USERNAME}"
+export TF_VAR_aap_password="${AAP_PASSWORD}"
+
+# Python debugging
+export LOAD_DOTENV="true"
+export LOG_LEVEL="DEBUG"
